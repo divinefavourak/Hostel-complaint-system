@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Complaint, ComplaintStatus, UrgencyLevel } from '../types';
 
-const MOCK_COMPLAINTS: Complaint[] = [
+const MY_COMPLAINTS: Complaint[] = [
   {
     id: '#REF-8842',
     title: 'Leaking Water Pipe in Room 302',
@@ -41,11 +41,44 @@ const MOCK_COMPLAINTS: Complaint[] = [
   }
 ];
 
+const UPVOTED_ISSUES: Complaint[] = [
+    {
+        id: '#REF-1102',
+        title: 'No Water Supply in Block C',
+        category: 'Plumbing',
+        location: 'Moremi Hall',
+        description: 'Water has not been running for 2 days.',
+        dateFiled: 'Oct 27, 2023',
+        status: ComplaintStatus.SUBMITTED,
+        urgency: UrgencyLevel.URGENT,
+        upvotes: 156,
+        stage: 1
+    },
+    {
+        id: '#REF-3321',
+        title: 'Walkway Light Bulb Blown',
+        category: 'Electrical',
+        location: 'Moremi Hall',
+        description: 'Dark walkway at night, safety hazard.',
+        dateFiled: 'Oct 25, 2023',
+        status: ComplaintStatus.ASSIGNED,
+        urgency: UrgencyLevel.NORMAL,
+        upvotes: 34,
+        stage: 2,
+        estimatedCompletion: 'Oct 30'
+    }
+];
+
+type DashboardTab = 'MY_COMPLAINTS' | 'UPVOTED';
+
 export const StudentDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('MY_COMPLAINTS');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [urgencyFilter, setUrgencyFilter] = useState<string>('ALL');
 
-  const filteredComplaints = MOCK_COMPLAINTS.filter((complaint) => {
+  const sourceData = activeTab === 'MY_COMPLAINTS' ? MY_COMPLAINTS : UPVOTED_ISSUES;
+
+  const filteredComplaints = sourceData.filter((complaint) => {
     const matchesStatus = statusFilter === 'ALL' || complaint.status === statusFilter;
     const matchesUrgency = urgencyFilter === 'ALL' || complaint.urgency === urgencyFilter;
     return matchesStatus && matchesUrgency;
@@ -80,12 +113,18 @@ export const StudentDashboard: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {/* Tabs */}
         <div className="flex border-b border-slate-200">
-          <button className="flex-1 py-4 text-sm font-bold border-b-4 border-primary text-primary flex items-center justify-center gap-2 bg-slate-50">
+          <button 
+            onClick={() => setActiveTab('MY_COMPLAINTS')}
+            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'MY_COMPLAINTS' ? 'border-b-4 border-primary text-primary bg-slate-50' : 'text-slate-500 hover:text-slate-700'}`}
+          >
             <span className="material-symbols-outlined text-lg">assignment</span>
             My Complaints
           </button>
-          <button className="flex-1 py-4 text-sm font-medium text-slate-500 hover:text-primary transition-colors flex items-center justify-center gap-2">
-            <span className="material-symbols-outlined text-lg">favorite</span>
+          <button 
+            onClick={() => setActiveTab('UPVOTED')}
+            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'UPVOTED' ? 'border-b-4 border-primary text-primary bg-slate-50' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <span className="material-symbols-outlined text-lg">thumb_up</span>
             Upvoted Issues
           </button>
         </div>
@@ -101,6 +140,7 @@ export const StudentDashboard: React.FC = () => {
                 >
                     <option value="ALL">All Statuses</option>
                     <option value={ComplaintStatus.SUBMITTED}>Submitted</option>
+                    <option value={ComplaintStatus.ASSIGNED}>Assigned</option>
                     <option value={ComplaintStatus.IN_PROGRESS}>In Progress</option>
                     <option value={ComplaintStatus.RESOLVED}>Resolved</option>
                     <option value={ComplaintStatus.CLOSED}>Closed</option>
@@ -126,8 +166,17 @@ export const StudentDashboard: React.FC = () => {
         <div className="p-6 space-y-6">
           {filteredComplaints.length > 0 ? (
             filteredComplaints.map((complaint) => (
-            <div key={complaint.id} className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-4">
+            <div key={complaint.id} className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow relative">
+                {activeTab === 'UPVOTED' && (
+                    <div className="absolute top-6 right-6 flex flex-col items-center">
+                         <button className="text-primary hover:scale-110 transition-transform">
+                            <span className="material-symbols-outlined icon-filled text-2xl">thumb_up</span>
+                         </button>
+                         <span className="text-xs font-bold text-slate-500">{complaint.upvotes}</span>
+                    </div>
+                )}
+
+              <div className="flex justify-between items-start mb-4 pr-12">
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded ${
@@ -150,6 +199,7 @@ export const StudentDashboard: React.FC = () => {
                      </span>
                   </div>
                   <h3 className="text-lg font-bold text-slate-900">{complaint.title}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{complaint.location} • {complaint.category}</p>
                 </div>
                 <span className="text-xs font-medium text-slate-400">{complaint.dateFiled}</span>
               </div>
@@ -188,7 +238,7 @@ export const StudentDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {complaint.status === ComplaintStatus.RESOLVED && (
+              {complaint.status === ComplaintStatus.RESOLVED && activeTab === 'MY_COMPLAINTS' && (
                   <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
                       <div className="flex items-center gap-2 text-primary">
                           <span className="material-symbols-outlined text-sm">verified</span>

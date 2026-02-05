@@ -10,6 +10,7 @@ import { ComplaintLogs } from './pages/ComplaintLogs';
 import { HallReports } from './pages/HallReports';
 import { StudentDirectory } from './pages/StudentDirectory';
 import { Settings } from './pages/Settings';
+import { HostelBallot } from './pages/HostelBallot';
 import { UserRole } from './types';
 
 function App() {
@@ -34,6 +35,8 @@ function App() {
         return <StudentDashboard />;
       case 'new-complaint':
         return <NewComplaint />;
+      case 'hostel-ballot':
+        return <HostelBallot />;
       case 'history':
         return <History />;
         
@@ -73,6 +76,7 @@ function App() {
             title={
                 currentView === 'dashboard' ? 'Overview' : 
                 currentView === 'new-complaint' ? 'File Complaint' :
+                currentView === 'hostel-ballot' ? 'Ballot Check' :
                 currentView === 'history' ? 'History' :
                 currentView === 'admin-dashboard' ? 'Admin Overview' : 
                 currentView === 'hall-reports' ? 'Hall Reports' :

@@ -55,14 +55,51 @@ const MOCK_ALL_COMPLAINTS: Complaint[] = [
 ];
 
 export const ComplaintLogs: React.FC = () => {
+  const [tickets, setTickets] = useState(MOCK_ALL_COMPLAINTS);
   const [filter, setFilter] = useState('ALL');
+  const [editingTicket, setEditingTicket] = useState<Complaint | null>(null);
+
+  // Form State
+  const [editForm, setEditForm] = useState({
+      status: '',
+      assignedTo: ''
+  });
+
+  const handleEditClick = (ticket: Complaint) => {
+      setEditingTicket(ticket);
+      setEditForm({
+          status: ticket.status,
+          assignedTo: ticket.assignedTo || ''
+      });
+  };
+
+  const handleSave = () => {
+      if (!editingTicket) return;
+      
+      const updatedTickets = tickets.map(t => {
+          if (t.id === editingTicket.id) {
+              return {
+                  ...t,
+                  status: editForm.status as ComplaintStatus,
+                  assignedTo: editForm.assignedTo,
+                  stage: editForm.status === ComplaintStatus.RESOLVED ? 5 : 
+                         editForm.status === ComplaintStatus.IN_PROGRESS ? 3 :
+                         editForm.status === ComplaintStatus.ASSIGNED ? 2 : 1
+              };
+          }
+          return t;
+      });
+      
+      setTickets(updatedTickets);
+      setEditingTicket(null);
+  };
 
   const filtered = filter === 'ALL' 
-    ? MOCK_ALL_COMPLAINTS 
-    : MOCK_ALL_COMPLAINTS.filter(c => c.status === filter);
+    ? tickets 
+    : tickets.filter(c => c.status === filter);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-8 max-w-7xl mx-auto space-y-6 relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 className="text-2xl font-black text-slate-900">Complaint Logs</h1>
@@ -133,7 +170,10 @@ export const ComplaintLogs: React.FC = () => {
                             {ticket.assignedTo || <span className="text-slate-300 italic">Unassigned</span>}
                         </td>
                         <td className="p-4">
-                            <button className="text-slate-400 hover:text-primary transition-colors">
+                            <button 
+                                onClick={() => handleEditClick(ticket)}
+                                className="text-slate-400 hover:text-primary transition-colors"
+                            >
                                 <span className="material-symbols-outlined">edit_square</span>
                             </button>
                         </td>
@@ -145,6 +185,64 @@ export const ComplaintLogs: React.FC = () => {
             <div className="p-8 text-center text-slate-400">No logs found matching filter.</div>
         )}
       </div>
+
+        {/* Edit Modal */}
+        {editingTicket && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingTicket(null)}></div>
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative z-10 p-6 animate-in fade-in zoom-in duration-200">
+                    <h2 className="text-xl font-black text-slate-900 mb-1">Update Ticket</h2>
+                    <p className="text-sm text-slate-500 mb-6 font-mono">{editingTicket.id} - {editingTicket.title}</p>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Assign To Staff</label>
+                            <input 
+                                type="text" 
+                                value={editForm.assignedTo}
+                                onChange={(e) => setEditForm({...editForm, assignedTo: e.target.value})}
+                                placeholder="Enter staff name..."
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Update Status</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {[ComplaintStatus.SUBMITTED, ComplaintStatus.ASSIGNED, ComplaintStatus.IN_PROGRESS, ComplaintStatus.RESOLVED, ComplaintStatus.CLOSED].map(status => (
+                                    <button
+                                        key={status}
+                                        onClick={() => setEditForm({...editForm, status})}
+                                        className={`py-2 px-3 rounded-lg text-xs font-bold border transition-colors ${
+                                            editForm.status === status 
+                                            ? 'bg-primary text-slate-900 border-primary' 
+                                            : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        {status}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
+                        <button 
+                            onClick={() => setEditingTicket(null)} 
+                            className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-lg"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleSave}
+                            className="px-6 py-2 text-sm font-bold text-slate-900 bg-primary hover:bg-primary-dark rounded-lg shadow-lg shadow-primary/20"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };

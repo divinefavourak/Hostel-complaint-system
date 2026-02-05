@@ -12,6 +12,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, rol
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'my-complaints', label: 'My Complaints', icon: 'assignment' },
     { id: 'new-complaint', label: 'New Complaint', icon: 'add_circle' },
+    { id: 'hostel-ballot', label: 'Ballot Check', icon: 'how_to_vote' },
     { id: 'history', label: 'History', icon: 'history' },
   ] : [
     { id: 'admin-dashboard', label: 'Overview', icon: 'dashboard' },
